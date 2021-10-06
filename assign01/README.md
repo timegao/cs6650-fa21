@@ -16,7 +16,11 @@ All the tests were run on a Apple MacBook Air (Dec 2020) with the latest Apple M
 
 ### Internet
 
-I used my home internet for the entirety of the tests on BlueWave 100 mbps internet. I had tried using the WiFi on campus, being that it's been recently upgraded to fiber speeds. However, as before, the limitation was the number of requests it could send out before connection timed out. Connections would time out after about 64 requests no matter what I did, and I spent a whole afternoon troubleshooting the issue to no avail. I did not try the instructor's recommendation to use the WiFi from a coffee shop being that my home internet did the job, being that many of the coffee shops nearby did not have good internet (.e.g, Fresh Flours internet can't even stream a video, and Capital One Cafe internet is very slow). If I had to pick an internet to try, I would try the Starbucks on 442 Terry Ave N, Seattle, WA 98109, but I don't know how good the internet is because I've never had to use it. The reason is that from the instructor's story about a previous student who couldn't get her tests to run, Starbucks' internet was the internet that worked.
+I used my home internet for the entirety of the tests on BlueWave 100 mbps internet.
+
+![speedtest](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/speedtest.png?token=AMABNPV622TZUWNBEIXQ4MLBM5FCY)
+
+I tried using the WiFi on campus because it's been recently upgraded to fiber speeds. However, as before, the limitation was the number of requests it could send out before connection timed out. Connections would time out after about 64 requests no matter what I did, and I spent a whole afternoon troubleshooting the issue to no avail. I did not try the instructor's recommendation to use the WiFi from a coffee shop being that my home internet did the job, being that many of the coffee shops nearby did not have good internet (.e.g, Fresh Flours internet can't even stream a video, and Capital One Cafe internet is very slow). If I had to pick an internet to try, I would try the Starbucks on 442 Terry Ave N, Seattle, WA 98109, but I don't know how good the internet is because I've never had to use it. The reason is that from the instructor's story about a previous student who couldn't get her tests to run, Starbucks' internet was the internet that worked.
 
 ### Testing
 
@@ -138,13 +142,13 @@ I added another class `Request` to track the required information in a model. I 
 
 ### dependencies:
 
-### server
+#### server
 
 json - used to instantiate and edit JSON objects.
 
 javax.servlet-api - used to create the Servlet.
 
-#### client
+##### client
 
 lombok - used to simplify classes with annotations.
 
@@ -152,18 +156,36 @@ swagger-java-client - used for Swagger Client SDK.
 
 ## Submission Requirements:
 
-- the URL for your git repo. Make sure that the code for the client part 1 and part 2 are in seperate folders in your repo
+> - the URL for your git repo. Make sure that the code for the client part 1 and part 2 are in seperate folders in your repo
 
-- a 1-2 page description of your client design. Include major classes, packages, relationships, whatever you need to convey concisely how your client works.Include Little’s Law throughput predictions.
+> - a 1-2 page description of your client design. Include major classes, packages, relationships, whatever you need to convey concisely how your client works. Include Little’s Law throughput predictions.
 
-- Client (Part 1) - run your client with 32, 64, 128 and 256 threads, with numSkiers=20000, and numLifts=40. Include the outputs of each run in your submission (showing the wall time) and plot a simple chart showing the wall time by the number of threads. This should be a screen shot of your output window.
+> - Client (Part 1) - run your client with 32, 64, 128 and 256 threads, with numSkiers=20000, and numLifts=40. Include the outputs of each run in your submission (showing the wall time) and plot a simple chart showing the wall time by the number of threads. This should be a screen shot of your output window.
 
-- Client (Part 2) - run the client as per Part 1, showing the output window for each run. Also generate a plot of throughput and mean response time against number of threads. Again, this should be a screen shot of your output window.
+> - Client (Part 2) - run the client as per Part 1, showing the output window for each run. Also generate a plot of throughput and mean response time against number of threads. Again, this should be a screen shot of your output window.
 
 ## Bonus:
 
-- It is usually interesting to plot average latencies over the whole duration of a test run. To do this you will have to capture timestamps of when the request occurs, and then generate a plot that shows latencies against time (there’s a good example in the percentile article earlier).
+> It is usually interesting to plot average latencies over the whole duration of a test run. To do this you will have to capture timestamps of when the request occurs, and then generate a plot that shows latencies against time (there’s a good example in the percentile article earlier).
 
-```
+## Charts:
 
-```
+### Part 1
+
+| threads                 | 32      | 64       | 128       | 256       |
+| ----------------------- | ------- | -------- | --------- | --------- |
+| requests                | 180000  | 180000   | 179936    | 179776    |
+| wall (ms)               | 390486  | 213692   | 124623    | 79733     |
+| throughput (requests/s) | 460.964 | 842.3339 | 1443.8426 | 2254.7252 |
+
+### Part 2
+
+| threads                 | 32       | 64       | 128       | 256       |
+| ----------------------- | -------- | -------- | --------- | --------- |
+| requests                | 180000   | 180000   | 179936    | 179776    |
+| wall (ms)               | 399636   | 206530   | 114642    | 72433     |
+| throughput (requests/s) | 450.4099 | 871.5441 | 1569.5469 | 2481.9627 |
+| mean (ms)               | 79.9212  | 83.0636  | 91.9422   | 118.6241  |
+| median (ms)             | 73       | 74       | 75        | 77        |
+| max (ms)                | 1380     | 2082     | 3202      | 7128      |
+| p99 (ms)                | 333      | 340      | 359       | 437       |
