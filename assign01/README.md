@@ -1,6 +1,12 @@
 # CS6650 Fall 2021 Assignment 1
 
-## Introduction:
+## **GitHub Link**:
+
+**https://github.com/timegao/cs6650-fa21/tree/main/assign01**
+
+&nbsp;
+
+## **Introduction**:
 
 Assignment description: https://gortonator.github.io/bsds-6650/assignments-2021/Assignment-1
 
@@ -8,7 +14,9 @@ Assignment description: https://gortonator.github.io/bsds-6650/assignments-2021/
 
 > In Assignment 1, we’ll build a client that generates and sends lift ride data to a server in the cloud. The server will simply accept and validate requests, and send an HTTP 200/201 response.
 
-## Specs:
+&nbsp;
+
+## **Specs**:
 
 ### Laptop
 
@@ -26,7 +34,9 @@ I tried using the WiFi on campus because it's been recently upgraded to fiber sp
 
 Testing were mostly done at evening and morning hours in Pacific Standard time. The server location was limited to the us-west-1 Virginia on AWS because that's the only region available for AWSEducate.
 
-## Design:
+&nbsp;
+
+## **Design**:
 
 ### Part 1
 
@@ -154,38 +164,88 @@ lombok - used to simplify classes with annotations.
 
 swagger-java-client - used for Swagger Client SDK.
 
+### Bonus:
+
+> It is usually interesting to plot average latencies over the whole duration of a test run. To do this you will have to capture timestamps of when the request occurs, and then generate a plot that shows latencies against time (there’s a good example in the percentile article earlier).
+
+&nbsp;
+
+## Charts:
+
+### Little's Law
+
+![single thread](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/single%201000.png?token=AMABNPRIXMYDFWRYZN52E2DBM5P5G)
+
+| threads                 | 1       |
+| ----------------------- | ------- |
+| successes               | 10,000  |
+| failures                | 0       |
+| wall (ms)               | 747,668 |
+| throughput (requests/s) | 13.3749 |
+
+Based on the results from the single thread 10,000 requests, we have a minimum response time of 74.7668 ms per request.
+
+Calculating for the values by multiplying the thread, assuming ZERO additional costs by adding threads, we would expect the following wall times for 180,000 requests:
+
+| threads                 | 32         | 64          | 128         | 256          |
+| ----------------------- | ---------- | ----------- | ----------- | ------------ |
+| wall (ms)               | 420,563.25 | 210,281.625 | 105140.8125 | 52,570.40625 |
+| throughput (requests/s) | 427.9968   | 855.9936    | 1,711.9872  | 3,423.9744   |
+
+### Part 1
+
+| threads                 | 32      | 64       | 128       | 256       |
+| ----------------------- | ------- | -------- | --------- | --------- |
+| requests                | 180,000 | 180,000  | 179,936   | 179,776   |
+| wall (ms)               | 390,486 | 213,692  | 124,623   | 79,733    |
+| throughput (requests/s) | 460.964 | 842.3339 | 1443.8426 | 2254.7252 |
+
+### Part 2
+
+| threads                 | 32       | 64       | 128        | 256        |
+| ----------------------- | -------- | -------- | ---------- | ---------- |
+| requests                | 180,000  | 180,000  | 179,936    | 179,776    |
+| wall (ms)               | 399,636  | 206,530  | 114,642    | 72,433     |
+| throughput (requests/s) | 450.4099 | 871.5441 | 1,569.5469 | 2,481.9627 |
+| mean (ms)               | 79.9212  | 83.0636  | 91.9422    | 118.6241   |
+| median (ms)             | 73       | 74       | 75         | 77         |
+| max (ms)                | 1380     | 2082     | 3202       | 7,128      |
+| p99 (ms)                | 333      | 340      | 359        | 437        |
+
+Reality is often disappointing. While the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the real quickly lose out to the theoretical limits.
+
+We see that the culprit is the much increased mean, median, max, and p99 response time.
+
+### Latency
+
+By comparing the latency for 32, 64, 128, and 256 threads, we can see that the higher the number of threads, the longer it takes for the first threads to finish. The first threads also have greater and greater starting latency. For example, we can see that the max response time for 256 threads is 7,128 ms, and that number looks to be right when the program starts.
+
+#### 32 Threads
+
+![32 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/csv/analysis/charts/latency-32.png?token=AMABNPWPJGGHYEYXFWRLMGLBM5URI)
+
+#### 64 Threads
+
+![64 threads]()
+
+#### 128 Threads
+
+![128 threads]()
+
+##### 256 Threads
+
+![256 threads]()
+
+&nbsp;
+
 ## Submission Requirements:
 
 > - the URL for your git repo. Make sure that the code for the client part 1 and part 2 are in seperate folders in your repo
+
+**https://github.com/timegao/cs6650-fa21/tree/main/assign01**
 
 > - a 1-2 page description of your client design. Include major classes, packages, relationships, whatever you need to convey concisely how your client works. Include Little’s Law throughput predictions.
 
 > - Client (Part 1) - run your client with 32, 64, 128 and 256 threads, with numSkiers=20000, and numLifts=40. Include the outputs of each run in your submission (showing the wall time) and plot a simple chart showing the wall time by the number of threads. This should be a screen shot of your output window.
 
 > - Client (Part 2) - run the client as per Part 1, showing the output window for each run. Also generate a plot of throughput and mean response time against number of threads. Again, this should be a screen shot of your output window.
-
-## Bonus:
-
-> It is usually interesting to plot average latencies over the whole duration of a test run. To do this you will have to capture timestamps of when the request occurs, and then generate a plot that shows latencies against time (there’s a good example in the percentile article earlier).
-
-## Charts:
-
-### Part 1
-
-| threads                 | 32      | 64       | 128       | 256       |
-| ----------------------- | ------- | -------- | --------- | --------- |
-| requests                | 180000  | 180000   | 179936    | 179776    |
-| wall (ms)               | 390486  | 213692   | 124623    | 79733     |
-| throughput (requests/s) | 460.964 | 842.3339 | 1443.8426 | 2254.7252 |
-
-### Part 2
-
-| threads                 | 32       | 64       | 128       | 256       |
-| ----------------------- | -------- | -------- | --------- | --------- |
-| requests                | 180000   | 180000   | 179936    | 179776    |
-| wall (ms)               | 399636   | 206530   | 114642    | 72433     |
-| throughput (requests/s) | 450.4099 | 871.5441 | 1569.5469 | 2481.9627 |
-| mean (ms)               | 79.9212  | 83.0636  | 91.9422   | 118.6241  |
-| median (ms)             | 73       | 74       | 75        | 77        |
-| max (ms)                | 1380     | 2082     | 3202      | 7128      |
-| p99 (ms)                | 333      | 340      | 359       | 437       |
