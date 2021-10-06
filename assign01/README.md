@@ -1,6 +1,6 @@
 # CS6650 Fall 2021 Assignment 1
 
-## **GitHub Link**:
+## <a name="github-link">**GitHub Link**</a>:
 
 **https://github.com/timegao/cs6650-fa21/tree/main/assign01**
 
@@ -185,7 +185,7 @@ swagger-java-client - used for Swagger Client SDK.
 
 Based on the results from the single thread 10,000 requests, we have a minimum response time of 74.7668 ms per request.
 
-Calculating for the values by multiplying the thread, assuming ZERO additional costs by adding threads, we would expect the following wall times for 180,000 requests:
+Calculating for the values by multiplying the thread, assuming ZERO additional costs by adding threads, we would expect the following theoreitcal wall times and throughput for 180,000 requests by multiply by the number of threads and also 18 (since about 180,000 requests are created for multithread as opposed to 10,000 for single thread):
 
 | threads                 | 32         | 64          | 128         | 256          |
 | ----------------------- | ---------- | ----------- | ----------- | ------------ |
@@ -212,9 +212,31 @@ Calculating for the values by multiplying the thread, assuming ZERO additional c
 | max (ms)                | 1380     | 2082     | 3202       | 7,128      |
 | p99 (ms)                | 333      | 340      | 359        | 437        |
 
-Reality is often disappointing. While the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the real quickly lose out to the theoretical limits.
+Reality is often disappointing. We see that the culprit is the much increased mean, median, max, and p99 response time.
 
-We see that the culprit is the much increased mean, median, max, and p99 response time.
+### Mean Median
+
+We can see that the median and median increases in value as we double the number of threads.
+
+![mean-median](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/mean-median.png?token=AMABNPQSBHUZTJSYBKS2K5LBM5W2I)
+
+### Max P99
+
+We can see that the max response time is close to doubling every time we double the number of threads.
+
+![max-p99](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/max-p99.png?token=AMABNPRM7GW6EF22EJEDZKLBM5W3U)
+
+### Wall Time
+
+We can also compare the theoretical wall time with the actual wall time based on the number of threads (the lower the better). While the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the real quickly lose out to the theoretical limits.
+
+![wall](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/wall.png?token=AMABNPR4YK3T2X74JQKNOMDBM5WBS)
+
+### Throughput
+
+We can compare the theoretical throughput with the actual throughput based on the number of threads (the higher the better). Since the throughput is based on the wall time, likewise, it fails to keep up once we hit 128 and 256 threads.
+
+![throughput](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/throughput.png?token=AMABNPQ4Y3UUJF4FZ42QOALBM5VY2)
 
 ### Latency
 
@@ -222,27 +244,49 @@ By comparing the latency for 32, 64, 128, and 256 threads, we can see that the h
 
 #### 32 Threads
 
-![32 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/csv/analysis/charts/latency-32.png?token=AMABNPWPJGGHYEYXFWRLMGLBM5URI)
+![32 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-32.png?token=AMABNPWT2XTABHAONMVHDZLBM5U2Q)
 
 #### 64 Threads
 
-![64 threads]()
+![64 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-64.png?token=AMABNPQFNKSJILOYXLCO5U3BM5U3M)
 
 #### 128 Threads
 
-![128 threads]()
+![128 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-128.png?token=AMABNPTIQEUE43MA2ILAG2DBM5U4C)
 
 ##### 256 Threads
 
-![256 threads]()
+![256 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-256.png?token=AMABNPVZ6KBHKICFDT3JG3TBM5U5G)
 
 &nbsp;
 
-## Submission Requirements:
+## **UML's:**
+
+### Part 1
+
+![part1-uml](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/part1-uml.png?token=AMABNPTBRVMV7MC2R4HB62LBM5WOY)
+
+### Part 2
+
+![part2-uml](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/part2-uml.png?token=AMABNPUPSDWE2BHHPDXAUJDBM5WPY)
+
+&nbsp;
+
+## **Screenshots**
+
+### Part 1
+
+[part1](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part1)
+
+### Part 2
+
+[part2](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part2)
+
+## **Submission Requirements**:
 
 > - the URL for your git repo. Make sure that the code for the client part 1 and part 2 are in seperate folders in your repo
 
-**https://github.com/timegao/cs6650-fa21/tree/main/assign01**
+[GitHub Link](#github-link)
 
 > - a 1-2 page description of your client design. Include major classes, packages, relationships, whatever you need to convey concisely how your client works. Include Little’s Law throughput predictions.
 
