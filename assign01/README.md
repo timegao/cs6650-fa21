@@ -1,6 +1,6 @@
 # CS6650 Fall 2021 Assignment 1
 
-## <a name="github-link">**GitHub Link**</a>:
+## <a name="github">**GitHub**</a>:
 
 **https://github.com/timegao/cs6650-fa21/tree/main/assign01**
 
@@ -36,7 +36,7 @@ Testing were mostly done at evening and morning hours in Pacific Standard time. 
 
 &nbsp;
 
-## **Design**:
+## <a name="design">**Design**</a>:
 
 ### Part 1
 
@@ -126,7 +126,7 @@ The logic to generate the random LiftRide is in `PostRequestTask`.
 
 I added another class `Request` to track the required information in a model. I also added another class `RequestAnalyzer` to calculate the response values to System.out.println. Part 2 has additional values to print both to console, and it also writes the values recoreded in a csv.
 
-### Classes
+### <a name="classes">**Classes**</a>
 
 #### commandline
 
@@ -150,7 +150,7 @@ I added another class `Request` to track the required information in a model. I 
 
 `RequestAnalyzer` (part2 only) - analyzes the `ConcurrentLinkedQueue` generated from `ExecutorServiceTask` and calculates the mean, median, max, and p99 values.
 
-### dependencies:
+### <a name="dependencies">**Dependencies**</a>:
 
 #### server
 
@@ -172,7 +172,7 @@ swagger-java-client - used for Swagger Client SDK.
 
 ## Charts:
 
-### Little's Law
+### <a name="littles-law">**Little's Law**</a>
 
 ![single thread](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/single%201000.png?token=AMABNPRIXMYDFWRYZN52E2DBM5P5G)
 
@@ -214,7 +214,7 @@ Calculating for the values by multiplying the thread, assuming ZERO additional c
 
 Reality is often disappointing. We see that the culprit is the much increased mean, median, max, and p99 response time.
 
-### Mean Median
+### <a name="mean">**Mean Median**</a>
 
 We can see that the median and median increases in value as we double the number of threads.
 
@@ -226,13 +226,13 @@ We can see that the max response time is close to doubling every time we double 
 
 ![max-p99](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/max-p99.png?token=AMABNPRM7GW6EF22EJEDZKLBM5W3U)
 
-### Wall Time
+### <a name="wall">**Wall Time**</a>
 
 We can also compare the theoretical wall time with the actual wall time based on the number of threads (the lower the better). While the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the real quickly lose out to the theoretical limits.
 
 ![wall](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/wall.png?token=AMABNPR4YK3T2X74JQKNOMDBM5WBS)
 
-### Throughput
+### <a name="throughput">**Throughput**</a>
 
 We can compare the theoretical throughput with the actual throughput based on the number of threads (the higher the better). Since the throughput is based on the wall time, likewise, it fails to keep up once we hit 128 and 256 threads.
 
@@ -260,7 +260,7 @@ By comparing the latency for 32, 64, 128, and 256 threads, we can see that the h
 
 &nbsp;
 
-## **UML's:**
+## <a name="uml">**UML**</a>
 
 ### Part 1
 
@@ -284,12 +284,10 @@ By comparing the latency for 32, 64, 128, and 256 threads, we can see that the h
 
 ## **Submission Requirements**:
 
-> - the URL for your git repo. Make sure that the code for the client part 1 and part 2 are in seperate folders in your repo
+> - [the URL for your git repo](#github). Make sure that the code for the client part 1 and part 2 are in seperate folders in your repo
 
-[GitHub Link](#github-link)
+> - a 1-2 page description of your [client design](#design). Include [major classes](#classes), [packages](#dependencies), [relationships](#uml), whatever you need to convey concisely how your client works. Include [Little’s Law](#littles-law) throughput predictions.
 
-> - a 1-2 page description of your client design. Include major classes, packages, relationships, whatever you need to convey concisely how your client works. Include Little’s Law throughput predictions.
+> - Client (Part 1) - run your client with 32, 64, 128 and 256 threads, with numSkiers=20000, and numLifts=40. Include the outputs of each run in your submission (showing the wall time) and plot a simple chart showing the [wall time](#wall) by the number of threads. This should be a screenshot of your output window.
 
-> - Client (Part 1) - run your client with 32, 64, 128 and 256 threads, with numSkiers=20000, and numLifts=40. Include the outputs of each run in your submission (showing the wall time) and plot a simple chart showing the wall time by the number of threads. This should be a screen shot of your output window.
-
-> - Client (Part 2) - run the client as per Part 1, showing the output window for each run. Also generate a plot of throughput and mean response time against number of threads. Again, this should be a screen shot of your output window.
+> - Client (Part 2) - run the client as per Part 1, showing the output window for each run. Also generate a plot of [throughput](#throughput) and [mean response time](#mean) against number of threads. Again, this should be a screenshot of your output window.
