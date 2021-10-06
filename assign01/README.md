@@ -6,6 +6,22 @@
 
 &nbsp;
 
+## **Submission Requirements**:
+
+> [the URL for your git repo](#github). Make sure that the code for the client part 1 and part 2 are in separate folders in your repo
+
+> a 1-2 page description of your [client design](#design). Include [major classes](#classes), [packages](#dependencies), [relationships](#uml), whatever you need to convey concisely how your client works. Include [Little’s Law](#littles-law) throughput predictions.
+
+> Client (Part 1) - run your client with 32, 64, 128 and 256 threads, with numSkiers=20000, and numLifts=40. Include the outputs of each run in your submission (showing the wall time) and plot a simple chart showing the [wall time](#wall) by the number of threads. This should be a [screenshot](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part1) of your output window.
+
+> Client (Part 2) - run the client as per Part 1, showing the output window for each run. Also generate a plot of [throughput](#throughput) and [mean response time](#mean) against number of threads. Again, this should be a [screenshot](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part2) of your output window.
+
+## Bonus:
+
+> It is usually interesting to plot average latencies over the whole duration of a test run. To do this you will have to capture timestamps of when the request occurs, and then generate a plot that shows [latencies](#latencies) against time (there’s a good example in the percentile article earlier).
+
+&nbsp;
+
 ## **Introduction**:
 
 Assignment description: https://gortonator.github.io/bsds-6650/assignments-2021/Assignment-1
@@ -47,7 +63,7 @@ Testing were mostly done at evening and morning hours in Pacific Standard time. 
 > - Do basic parameter validation, and return a 4XX response code and error message if invalid values/formats supplied
 > - If the request is valid, return a 200/201 response code and some dummy data as a response body
 
-I used the same server built from lab-2, please see [MISSING LINK].
+I used the same server built from [lab-2](https://github.com/timegao/cs6650-fa21/tree/main/lab02).
 
 It is a Java Servlet with doPost and doGet methods that accepts parameters to /skiers/ url. The specifications for the servlet are loosely tied to [skiDataAPI Swagger specifications](https://app.swaggerhub.com/apis/cloud-perf/SkiDataAPI/1.1#/skiers/getSkierDayVertical). I say loosely because not all of the GET requests are being handled and checked, although for POST requests, it should be working according to specifications.
 
@@ -164,17 +180,13 @@ lombok - used to simplify classes with annotations.
 
 swagger-java-client - used for Swagger Client SDK.
 
-### Bonus:
-
-> It is usually interesting to plot average latencies over the whole duration of a test run. To do this you will have to capture timestamps of when the request occurs, and then generate a plot that shows latencies against time (there’s a good example in the percentile article earlier).
-
 &nbsp;
 
-## Charts:
+## **Charts**:
 
 ### <a name="littles-law">**Little's Law**</a>
 
-![single thread](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/single%201000.png?token=AMABNPRIXMYDFWRYZN52E2DBM5P5G)
+![single thread](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/single-1000.png?token=AMABNPU4PLNRH4KJNX2OJ4LBM5YMC)
 
 | threads                 | 1       |
 | ----------------------- | ------- |
@@ -194,11 +206,11 @@ Calculating for the values by multiplying the thread, assuming ZERO additional c
 
 ### Part 1
 
-| threads                 | 32      | 64       | 128       | 256       |
-| ----------------------- | ------- | -------- | --------- | --------- |
-| requests                | 180,000 | 180,000  | 179,936   | 179,776   |
-| wall (ms)               | 390,486 | 213,692  | 124,623   | 79,733    |
-| throughput (requests/s) | 460.964 | 842.3339 | 1443.8426 | 2254.7252 |
+| threads                 | 32      | 64       | 128        | 256        |
+| ----------------------- | ------- | -------- | ---------- | ---------- |
+| requests                | 180,000 | 180,000  | 179,936    | 179,776    |
+| wall (ms)               | 390,486 | 213,692  | 124,623    | 79,733     |
+| throughput (requests/s) | 460.964 | 842.3339 | 1,443.8426 | 2,254.7252 |
 
 ### Part 2
 
@@ -228,7 +240,7 @@ We can see that the max response time is close to doubling every time we double 
 
 ### <a name="wall">**Wall Time**</a>
 
-We can also compare the theoretical wall time with the actual wall time based on the number of threads (the lower the better). While the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the real quickly lose out to the theoretical limits.
+We can compare the theoretical wall time with the actual wall time based on the number of threads (the lower the better). While the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the real quickly lose out to the theoretical limits.
 
 ![wall](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/wall.png?token=AMABNPR4YK3T2X74JQKNOMDBM5WBS)
 
@@ -238,9 +250,9 @@ We can compare the theoretical throughput with the actual throughput based on th
 
 ![throughput](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/throughput.png?token=AMABNPQ4Y3UUJF4FZ42QOALBM5VY2)
 
-### Latency
+### <a name="latencies">**Latencies**</a>
 
-By comparing the latency for 32, 64, 128, and 256 threads, we can see that the higher the number of threads, the longer it takes for the first threads to finish. The first threads also have greater and greater starting latency. For example, we can see that the max response time for 256 threads is 7,128 ms, and that number looks to be right when the program starts.
+Interestingly, we can see that as the number of thread increases, the longer it takes for the first threads to finish (response time). This is most exacerbated once we hit 256 threads, where we can see that the max response time of 7,128 ms happens at the very beginning of the program.
 
 #### 32 Threads
 
@@ -281,13 +293,3 @@ By comparing the latency for 32, 64, 128, and 256 threads, we can see that the h
 ### Part 2
 
 [part2](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part2)
-
-## **Submission Requirements**:
-
-> - [the URL for your git repo](#github). Make sure that the code for the client part 1 and part 2 are in seperate folders in your repo
-
-> - a 1-2 page description of your [client design](#design). Include [major classes](#classes), [packages](#dependencies), [relationships](#uml), whatever you need to convey concisely how your client works. Include [Little’s Law](#littles-law) throughput predictions.
-
-> - Client (Part 1) - run your client with 32, 64, 128 and 256 threads, with numSkiers=20000, and numLifts=40. Include the outputs of each run in your submission (showing the wall time) and plot a simple chart showing the [wall time](#wall) by the number of threads. This should be a screenshot of your output window.
-
-> - Client (Part 2) - run the client as per Part 1, showing the output window for each run. Also generate a plot of [throughput](#throughput) and [mean response time](#mean) against number of threads. Again, this should be a screenshot of your output window.
