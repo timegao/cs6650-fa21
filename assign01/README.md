@@ -199,11 +199,11 @@ swagger-java-client - used for Swagger Client SDK.
 | wall (ms)               | 764,544 |
 | throughput (requests/s) | 13.0797 |
 
-Based on the results from the single thread 10,000 requests, we have a minimum response time of 74.7668 ms per request.
+Based on the results from the single thread 10,000 requests, we have a minimum response time of 76.4544 ms per request.
 
-Calculating for the values by multiplying the thread, assuming ZERO additional costs by adding threads, we would expect the following theoreitcal wall times and throughput for 180,000 requests by multiply by the number of threads and also 18 (since about 180,000 requests are created for multithread as opposed to 10,000 for single thread):
+Calculating for the values by multiplying the thread, assuming ZERO additional costs by adding threads, we would expect the following theoretical wall times and throughput for 180,000 requests by multiply by the number of threads and also 18 (since about 180,000 requests are created for multithread as opposed to 10,000 for single thread):
 
-theoretical
+### Theoretical
 
 | threads                 | 32       | 64       | 128        | 256        |
 | ----------------------- | -------- | -------- | ---------- | ---------- |
@@ -232,6 +232,8 @@ theoretical
 
 ### Part 1 Part 2 Comparison
 
+We are able to conclude that the difference in wall time between part 1 and part 2 is less than 5% across the board.
+
 #### 32 64 Threads
 
 We observe that the change in wall time is less than 3%.
@@ -256,7 +258,7 @@ What accounts for the fact that as the number of thread increases, the increase 
 
 ### Max P99
 
-We can also see that the max response time is close to doubling every time we double the number of threads.
+We can also see that while the p99 response time is increasing quickly, the max response time is close to doubling every time we double the number of threads.
 
 ![max-p99](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/max-p99.png?token=AMABNPVTWEVZJ6TLXL6L6Y3BM6V7O)
 
