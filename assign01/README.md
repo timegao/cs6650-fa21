@@ -190,61 +190,79 @@ swagger-java-client - used for Swagger Client SDK.
 
 ### <a name="littles-law">**Little's Law**</a>
 
-![single thread](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/single-1000.png?token=AMABNPU4PLNRH4KJNX2OJ4LBM5YMC)
+![single thread](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/other/single-1000.png?token=AMABNPTJWOP2DFRYXY2CLVLBM6TEM)
 
 | threads                 | 1       |
 | ----------------------- | ------- |
 | successes               | 10,000  |
 | failures                | 0       |
-| wall (ms)               | 747,668 |
-| throughput (requests/s) | 13.3749 |
+| wall (ms)               | 764,544 |
+| throughput (requests/s) | 13.0797 |
 
 Based on the results from the single thread 10,000 requests, we have a minimum response time of 74.7668 ms per request.
 
 Calculating for the values by multiplying the thread, assuming ZERO additional costs by adding threads, we would expect the following theoreitcal wall times and throughput for 180,000 requests by multiply by the number of threads and also 18 (since about 180,000 requests are created for multithread as opposed to 10,000 for single thread):
 
-| threads                 | 32         | 64          | 128         | 256          |
-| ----------------------- | ---------- | ----------- | ----------- | ------------ |
-| wall (ms)               | 420,563.25 | 210,281.625 | 105140.8125 | 52,570.40625 |
-| throughput (requests/s) | 427.9968   | 855.9936    | 1,711.9872  | 3,423.9744   |
-
-### Part 1
-
-| threads                 | 32      | 64       | 128        | 256        |
-| ----------------------- | ------- | -------- | ---------- | ---------- |
-| requests                | 180,000 | 180,000  | 179,936    | 179,776    |
-| wall (ms)               | 390,486 | 213,692  | 124,623    | 79,733     |
-| throughput (requests/s) | 460.964 | 842.3339 | 1,443.8426 | 2,254.7252 |
-
-### Part 2
+theoretical
 
 | threads                 | 32       | 64       | 128        | 256        |
 | ----------------------- | -------- | -------- | ---------- | ---------- |
-| requests                | 180,000  | 180,000  | 179,936    | 179,776    |
-| wall (ms)               | 399,636  | 206,530  | 114,642    | 72,433     |
-| throughput (requests/s) | 450.4099 | 871.5441 | 1,569.5469 | 2,481.9627 |
-| mean (ms)               | 79.9212  | 83.0636  | 91.9422    | 118.6241   |
-| median (ms)             | 73       | 74       | 75         | 77         |
-| max (ms)                | 1380     | 2082     | 3202       | 7,128      |
-| p99 (ms)                | 333      | 340      | 359        | 437        |
+| wall (ms)               | 430,056  | 215,028  | 107,514    | 53,757     |
+| throughput (requests/s) | 418.5504 | 837.1008 | 1,674.2016 | 3,348.4032 |
 
-Reality is often disappointing. We see that the culprit is the much increased mean, median, max, and p99 response time.
+### Part 1
+
+| threads                 | 32       | 64       | 128        | 256       |
+| ----------------------- | -------- | -------- | ---------- | --------- |
+| requests                | 180,000  | 180,000  | 179,936    | 179,776   |
+| wall (ms)               | 389,469  | 200,435  | 111,967    | 67,157    |
+| throughput (requests/s) | 462.1677 | 898.0467 | 1,607.0449 | 2,676.951 |
+
+### Part 2
+
+| thread                  | 32       | 64       | 128        | 256       |
+| ----------------------- | -------- | -------- | ---------- | --------- |
+| requests                | 180,000  | 180,000  | 179,936    | 179,776   |
+| wall (ms)               | 389,382  | 206,415  | 116,005    | 69,065    |
+| throughput (requests/s) | 462.2709 | 872.0297 | 1,551.1055 | 2,602.997 |
+| mean (ms)               | 78.1516  | 84.0199  | 94.7143    | 114.4744  |
+| median (ms)             | 74       | 76       | 77         | 81        |
+| max (ms)                | 1177     | 1431     | 3,510      | 6,076     |
+| p99 (ms)                | 158      | 234      | 330        | 374       |
+
+### Part 1 Part 2 Comparison
+
+#### 32 64 Threads
+
+We observe that the change in wall time is less than 3%.
+
+| thread | p1-32   | p2-32   | change | p1-64   | p2-64   | change |
+| ------ | ------- | ------- | ------ | ------- | ------- | ------ |
+| wall   | 389,469 | 389,382 | 0.00%  | 200,435 | 206,415 | 2.99%  |
+
+#### 128 256 Threads
+
+We observe that the change in wall time is about 3%.
+
+| p1-128  | p2-128  | change | p1-256 | p2256  | change |
+| ------- | ------- | ------ | ------ | ------ | ------ |
+| 111,967 | 116,005 | 3.61%  | 67,157 | 69,065 | 2.84%  |
 
 ### <a name="mean">**Mean Median**</a>
 
-We can see that the median and median increases in value as we double the number of threads.
+What accounts for the fact that as the number of thread increases, the increase in throughput and decrease in wall time does not keep up? We can see that the median and median increases in value as we double the number of threads.
 
-![mean-median](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/mean-median.png?token=AMABNPQSBHUZTJSYBKS2K5LBM5W2I)
+![mean-median](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/mean-median.png?token=AMABNPSRDDJTOQNGZSEOM2TBM6UAO)
 
 ### Max P99
 
-We can see that the max response time is close to doubling every time we double the number of threads.
+We can also see that the max response time is close to doubling every time we double the number of threads.
 
-![max-p99](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/max-p99.png?token=AMABNPRM7GW6EF22EJEDZKLBM5W3U)
+![max-p99](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/max-p99.png?token=AMABNPVTWEVZJ6TLXL6L6Y3BM6V7O)
 
 ### <a name="wall">**Wall Time**</a>
 
-We can compare the theoretical wall time with the actual wall time based on the number of threads (the lower the better). While the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the real quickly lose out to the theoretical limits.
+We can compare the theoretical wall time with the actual wall time based on the number of threads (the lower the better). For whatever reason, the estimated wall time at 32 and 64 threads are actually less than the single thread thereotical limits. However, while the tests keep up with 32 and 64 threads, even exceeding the expected the result for 32 threads, once we hit 128 and 256 threads, the test values quickly lose out to the theoretical limits.
 
 ![wall](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/wall.png?token=AMABNPR4YK3T2X74JQKNOMDBM5WBS)
 
@@ -252,27 +270,27 @@ We can compare the theoretical wall time with the actual wall time based on the 
 
 We can compare the theoretical throughput with the actual throughput based on the number of threads (the higher the better). Since the throughput is based on the wall time, likewise, it fails to keep up once we hit 128 and 256 threads.
 
-![throughput](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/throughput.png?token=AMABNPQ4Y3UUJF4FZ42QOALBM5VY2)
+![throughput](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/throughput.png?token=AMABNPVQAQXTMFYSTBR7TZLBM6UEA)
 
 ### <a name="latencies">**Latencies**</a>
 
-Interestingly, we can see that as the number of thread increases, the longer it takes for the first threads to finish (response time). The first threads are the slowest among all the threads, often taking up the max response time slot. This is most exacerbated once we hit 256 threads, where we can see that the max response time of 7,128 ms happens at the very beginning of the program.
+Interestingly, we can see that as the number of thread increases, the longer it takes for the first threads to finish (response time). The first threads are the slowest among all the threads, often taking up the max response time slot. This is most exacerbated once we hit 256 threads, where we can see that the max response time of 6,000 ms happens at the very beginning of the program.
 
 #### 32 Threads
 
-![32 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-32.png?token=AMABNPWT2XTABHAONMVHDZLBM5U2Q)
+![32 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-32.png?token=AMABNPXEE2WDTHDU2DKGSXLBM6UFW)
 
 #### 64 Threads
 
-![64 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-64.png?token=AMABNPQFNKSJILOYXLCO5U3BM5U3M)
+![64 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-64.png?token=AMABNPVJGWLLRP7UI3MUMJDBM6UGK)
 
 #### 128 Threads
 
-![128 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-128.png?token=AMABNPTIQEUE43MA2ILAG2DBM5U4C)
+![128 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-128.png?token=AMABNPVGIDPC2LOMGQBRY7DBM6UHC)
 
 ##### 256 Threads
 
-![256 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-256.png?token=AMABNPVZ6KBHKICFDT3JG3TBM5U5G)
+![256 threads](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign01/data/png/charts/latency-256.png?token=AMABNPXIEABTI5T5NUNRJOTBM6UHW)
 
 &nbsp;
 
