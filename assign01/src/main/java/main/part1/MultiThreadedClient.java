@@ -34,35 +34,36 @@ public final class MultiThreadedClient {
             System.exit(1);
         }
 
-        ExecutorServiceTask executorServiceTask = new ExecutorServiceTask(input);
-        executorServiceTask.run();
+//        ExecutorServiceTask executorServiceTask = new ExecutorServiceTask(input);
+//        executorServiceTask.run();
 
-//        int localSuccesses = 0;
-//        int localFailures = 0;
-//        long startTime = System.currentTimeMillis();
-//
-//        ApiClient client = new ApiClient().setConnectTimeout(60000).setReadTimeout(60000);
-//        client.setBasePath("http://34.205.18.204:8080/lab02_war");
-//        SkiersApi apiInstance = new SkiersApi(client);
-//        for (int i = 0; i < 10000; i++) {
-//            int skierID = (int) Math.ceil(Math.random() * 60) - 5;
-//            LiftRide liftRide = new LiftRide();
-//            liftRide.setLiftID((int) Math.ceil(Math.random() * 40));
-//            liftRide.setTime((int) Math.ceil(Math.random() * 420 - 1));
-//
-//            try {
-//                apiInstance.writeNewLiftRide(liftRide, RESORT_ID, SEASON_ID, DAY_ID, skierID);
-//                localSuccesses++;
-//            } catch (ApiException e) {
-//                e.printStackTrace();
-//                localFailures++;
-//            }
-//        }
-//
-//        long endTime = System.currentTimeMillis();
-//        System.out.println("thread(s): 1");
-//        System.out.println("successes: " + localSuccesses);
-//        System.out.println("failures: " + localFailures);
-//        System.out.println("wall: " + (endTime - startTime));
+        int localSuccesses = 0;
+        int localFailures = 0;
+        long startTime = System.currentTimeMillis();
+
+        ApiClient client = new ApiClient().setConnectTimeout(60000).setReadTimeout(60000);
+        client.setBasePath("http://34.205.18.204:8080/lab02_war");
+        SkiersApi apiInstance = new SkiersApi(client);
+        for (int i = 0; i < 10000; i++) {
+            int skierID = (int) Math.ceil(Math.random() * 60) - 5;
+            LiftRide liftRide = new LiftRide();
+            liftRide.setLiftID((int) Math.ceil(Math.random() * 40));
+            liftRide.setTime((int) Math.ceil(Math.random() * 420 - 1));
+
+            try {
+                apiInstance.writeNewLiftRide(liftRide, RESORT_ID, SEASON_ID, DAY_ID, skierID);
+                localSuccesses++;
+            } catch (ApiException e) {
+                e.printStackTrace();
+                localFailures++;
+            }
+        }
+
+        long endTime = System.currentTimeMillis();
+        System.out.println("thread(s): 1");
+        System.out.println("successes: " + localSuccesses);
+        System.out.println("failures: " + localFailures);
+        System.out.println("wall: " + (endTime - startTime));
+        System.out.println("throughput: " + (float) localSuccesses / (endTime - startTime));
     }
 }
