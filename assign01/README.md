@@ -36,7 +36,7 @@ Assignment description: https://gortonator.github.io/bsds-6650/assignments-2021/
 
 ### Laptop
 
-All the tests were run on a Apple MacBook Air (Dec 2020) with the latest Apple M1 SoC.
+All the tests were run on a Apple MacBook Air (Dec 2020) with the Apple M1 SoC.
 
 ### Internet
 
@@ -48,7 +48,7 @@ I tried using the WiFi on campus because it's been recently upgraded to fiber sp
 
 ### Testing
 
-Testing were mostly done at evening and morning hours in Pacific Standard time. The server location was limited to the us-west-1 Virginia on AWS because that's the only region available for AWSEducate.
+Testing were mostly done around noon hours in Pacific Standard time. The server location was limited to the us-west-1 Virginia on AWS because that's the only region available for AWSEducate, and the requests originated from Seattle, WA.
 
 &nbsp;
 
@@ -96,13 +96,13 @@ usage: options
 > - a start and end range for skierIDs, so that each thread has an identical number of skierIDs, caluculated as numSkiers/(numThreads/4). Pass each thread a disjoint range of skierIDs so that the whole range of IDs is covered by the threads, ie, thread 0 has skierIDs from 1 to (numSkiers/(numThreads/4)), thread 1 has skierIDs from (1x(numSkiers/(numThreads/4)+1) to (numSkiers/(numThreads/4))x2
 > - a start and end time, for this phase this is the first 90 minutes of the ski day (1-90)
 
+The logic to generate the random LiftRide is in `PostRequestTask`.
+
 > Once each thread has started it should send (numRunsx0.2)x(numSkiers/(numThreads/4)) POST requests to the server. Each POST should randomly select:
 
 > - a skierID from the range of ids passed to the thread
 > - a lift number (liftID)
 > - a time value from the range of minutes passed to each thread (between start and end time)
-
-The logic to generate the random LiftRide is in `PostRequestTask`.
 
 > Once 10% (rounded up) of the threads in Phase 1 have completed, Phase 2, the peak phase should begin. Phase 2 behaves like Phase 1, except:
 
@@ -112,7 +112,7 @@ The logic to generate the random LiftRide is in `PostRequestTask`.
 
 > Finally, once 10% of the threads in Phase 2 complete, Phase 3 should begin. Phase 3, the cooldown phase, is identical to Phase 1, starting 25% of numThreads, with each thread sending (0.1xnumRuns) POST requests, and with a time interval range of 361 to 420.
 
-`ExecutorServiceTask` uses `CountDownLatch` to track when to move from one phase to another phase. It uses a method startPhase to create a phase based on the specifications. To ensure that all threads are created before the `ExecutorService` shutsdown, the final `CountDownLatch` has all its threads in the `CountDownLatch`. `ExecutorServiceTask` has a `ExecutorService` to track the progress of all three tasks. Finally, shutdown the `ExecutorServiceTask`.
+`ExecutorServiceTask` uses `CountDownLatch` to track when to move from one phase to the next. It uses a method startPhase to create a phase based on the specifications. To ensure that all threads are created before the `ExecutorService` shutsdown, the final `CountDownLatch` has all its threads in the `CountDownLatch`. `ExecutorServiceTask` has a `ExecutorService` to track the progress of all three tasks.
 
 > When all threads from all phases are complete, the programs should print out:
 
@@ -121,7 +121,7 @@ The logic to generate the random LiftRide is in `PostRequestTask`.
 > - the total run time (wall time) for all phases to complete. Calculate this by taking a timestamp before commencing Phase 1 and another after all Phase 3 threads are complete.
 >   the total throughput in requests per second (total number of requests/wall time)
 
-`ExecutorServiceTask` uses System.out.println to print the required fields, including the number of threads.
+To counter the number of successful and failed requests, I used a `Counter` class that has synchronized methods to get and add a count. `ExecutorServiceTask` uses System.out.println to print the required fields, including the number of threads.
 
 ### Part 2
 
@@ -144,11 +144,15 @@ I added another class `Request` to track the required information in a model. I 
 
 ### <a name="classes">**Classes**</a>
 
+#### server
+
+`SkierServlet` - starts the `Servlet` that runs on Tomcat on AWS EC2 instance.
+
 #### commandline
 
-`CommandLineInput` - Exception handles the information generated from `CommandLineOptions` and stores it.
+`CommandLineInput` - exception handles the information generated from `CommandLineOptions` and stores it.
 
-`CommandLineOptions` - Specifies the `Options` and `Option` to be parsed from the commandline.
+`CommandLineOptions` - specifies the `Options` and `Option` to be parsed from the commandline.
 
 #### model
 
@@ -252,7 +256,7 @@ We can compare the theoretical throughput with the actual throughput based on th
 
 ### <a name="latencies">**Latencies**</a>
 
-Interestingly, we can see that as the number of thread increases, the longer it takes for the first threads to finish (response time). This is most exacerbated once we hit 256 threads, where we can see that the max response time of 7,128 ms happens at the very beginning of the program.
+Interestingly, we can see that as the number of thread increases, the longer it takes for the first threads to finish (response time). The first threads are the slowest among all the threads, often taking up the max response time slot. This is most exacerbated once we hit 256 threads, where we can see that the max response time of 7,128 ms happens at the very beginning of the program.
 
 #### 32 Threads
 
@@ -288,8 +292,8 @@ Interestingly, we can see that as the number of thread increases, the longer it 
 
 ### Part 1
 
-[part1](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part1)
+[thread(s), successes, failures, wall, throughput](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part1)
 
 ### Part 2
 
-[part2](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part2)
+[thread(s), successes, failures, wall, throughput, mean, median, max, p99](https://github.com/timegao/cs6650-fa21/tree/main/assign01/data/png/part2)
