@@ -15,7 +15,7 @@ public class ConsumerCommandLineOptions {
         Option host = new Option("h", "host", true, "host name of connection, default localhost");
         Option queue = new Option("q", "queue", true, "queue name of channel, default 'test'");
         Option username = new Option("u", "username", true, "username of the connection, default 'guest'");
-        Option password = new Option("p", "password", true, "password of the connection, default 'guest");
+        Option password = new Option("p", "password", true, "password of the connection, default 'guest'");
 
         instance.addOption(threads);
         instance.addOption(skiers);
