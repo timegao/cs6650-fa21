@@ -12,7 +12,7 @@
 
 > Create a [new folder for your Assignment 2 server code](https://github.com/timegao/cs6650-fa21/tree/main/assign02/src/main/java/producer).
 
-> A 1-2 page description of your [server design](#design). Include [major classes](#classes), [packages])(#dependencies), [relationships](#uml), how messages get sent/received, etc.
+> A 1-2 page description of your [server design](#design). Include [major classes](#classes), [packages](#dependencies), [relationships](#uml), how messages get sent/received, etc.
 
 > [Test runs](#results) ([command lines](#commands), [RMQ management windows showing queue size, send/receive rates for 64, 128 and 256 client threads](#results))
 
@@ -41,13 +41,13 @@ I tweaked the server built from [lab-2](https://github.com/timegao/cs6650-fa21/t
 > if valid, format the incoming data and send it as a payload to queue
 > Choose your own queue technology. RabbitMQ is an obvious one, AWS SQS another. Make sure you deploy RabbitMQ on its own EC2 instance. You can find various installation instructions here.
 
-I added the GenericObjectPool class to hold the ChannelPooledFactory, a wrapper for storing Channel objects, which can then the connection to rabbitmq.
+I added the `GenericObjectPool` class to hold the `ChannelPooledFactory`, a wrapper for storing `Channel` objects, which can then the connection to rabbitmq.
 
 > Your aim is to keep response times as low as possible. One free tier server will probably get pretty busy, so you will want to introduce load balancing.
 
 > You can set up AWS Elastic Load Balancing using either Application or Network load balancers. Enable load balancing with e.g. 4 free tier EC2 instances and see what effect this has on your performance.
 
-Unfortunately, due to the new limitations with AWS Free Tier, it seems that only 5 EC2 instances can be open at any time. Whenever I start a 6th EC2 instance, it automatically shuts down when completing its checks, and then it automatically terminates. Because of this limitation, I was only able to setup 3 servers instead of 4. My 5 EC2 instances are: 3 EC2 servers/providers, 1 rabbitmq server, and 1 plain old Java program consumer.
+Unfortunately, due to the new limitations with AWS Free Tier, it seems that only 5 EC2 instances can be open at any time. Whenever I start a 6th EC2 instance, it automatically shuts down when completing its checks and then terminates. Because of this limitation, I was only able to setup 3 servers instead of 4. My 5 EC2 instances are: 3 EC2 servers/providers, 1 rabbitmq server, and 1 plain old Java program consumer, with client running locally so that I can have an additional server.
 
 ### Step 2 - Implement a Consumer
 
@@ -67,19 +67,25 @@ The questions you need to explore are:
 
 See [results](#results) [with](#with) and [without](#without) load balancing.
 
-In my limited testing, load balancing was not fruitful
+In my limited testing, load balancing was not helpful except for the highest client thread count at 512.
+
+> How many queue consumers threads do I need to keep the queue size as close to zero as possible.
+
+In my limited testing, any number of threads between 64 and 256 was about the same. I chose to go with 32 which sounded about right given how limited a free tier t2-micro instace is.
 
 ### <a name="classes">**Classes**</a>
 
 #### client
 
-I needed to make a change in `CommandLineInput` class since there the previous assignment specified that there was a maximum of 256 threads, whereas 512 threads was required for the bonus section.
+I needed to make a change in the `CommandLineInput` class since there the previous assignment specified that there was a maximum of 256 threads, whereas 512 threads was required for the bonus section.
 
 I also needed to make a change in the `PostRequestTask` class since there was a bug in my client/server where I had set a default DAY_ID of 789, but the server only accepted DAY_ID that was a maximum of 420.
 
 #### server/producer
 
 `SkierServlet` - initializes `ChannelPooledFactory` to make connection to rabbitmq server.
+
+`ChannelPooledFactory` - makes connection to rabbitmq server and creates channel.
 
 `AbstractMessage` - parent class of other messages, which store a message with response code for easy JSON output.
 
@@ -92,8 +98,6 @@ I also needed to make a change in the `PostRequestTask` class since there was a 
 `InvalidPostMessage` -invalid POST message for 400 code.
 
 `MissingPostMessage` - missing POST message for 404 code.
-
-`ChannelPooledFactory` - makes connection to rabbitmq server and creates channel.
 
 #### consumer
 
@@ -108,8 +112,6 @@ I also needed to make a change in the `PostRequestTask` class since there was a 
 `ConsumerCommandLineInput` - exception handles the information generated from `ConsumerCommandLineOptions` and stores it.
 
 `ConsumerCommandLineOptions` - specifies the `Options` and `Option` to be parsed from commandline.
-
-> How many queue consumers threads do I need to keep the queue size as close to zero as possible.
 
 ### <a name="dependencies">**Dependencies**</a>
 
@@ -137,7 +139,7 @@ swagger-java-client - used for Swagger Client SDK.
 
 ### <a name="commands">**Commands**</a>
 
-I used Apache Options from the [Commons CLI library](https://commons.apache.org/proper/commons-cli/) to write according to the specifications for the client.
+I used Apache Options from the [Commons CLI library](https://commons.apache.org/proper/commons-cli/) to write the client according to the specifications.
 
 ```
 usage: options
@@ -153,7 +155,7 @@ usage: options
 -t, --threads <arg> number of threads, max 2
 ```
 
-I used Apache Options from the [Commons CLI library](https://commons.apache.org/proper/commons-cli/) to write according to the specifications for the consumer.
+I also used Apache Options from the [Commons CLI library](https://commons.apache.org/proper/commons-cli/) to write the consumer according to the specifications.
 
 ```
 usage: options
@@ -177,7 +179,7 @@ usage: options
 
 ### <a name="bonus">**Bonus**</a>
 
-I used the 512 client threads to test the number of consumer threads I should use. The logic was that since 512 client threads would have the highest throughput, then it would be the best way stress test. All tests were performed with an application load balancer.
+I used the 512 client threads to test the number of consumer threads I should use. The logic was that since 512 client threads would have the highest throughput, then it would be the best way stress test. All tests were performed with an application load balancer. The throughput for 512 client threads maxes out at 6,000 requests per second which is quite a lot.
 
 From my limited testing, it seems like the performance was about equal between 32, 64, 128, and 256 threads. The negligible difference in performance could be chalked to the differences in throughput, network connection, startup time, etc.
 
@@ -293,12 +295,16 @@ Over 20 queue messages is much worse than the 7 without a load balancer.
 
 ### Observation
 
-While not observable from the charts, the increase in lag time from first starting the program and the queue messages was much more noticeable with higher client thread counts.
+While not observable from the charts, the increase in lag time from first starting the client program and the queue messages was much more noticeable with higher client thread counts.
 
 &nbsp;
 
 ## <a name="uml">**UML**</a>
 
-### Server
+### Producer
+
+![producer uml](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign02/images/uml/producer%20uml.png?token=AMABNPW3TG3HWHCEHLAXXQDBQ52US)
 
 ### Consumer
+
+![consumer uml](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign02/images/uml/consumer%20uml.png?token=AMABNPXW6B5WGWTO242J6W3BQ52WA)
