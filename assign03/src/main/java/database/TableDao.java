@@ -7,18 +7,27 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class LiftRideDao {
+public class TableDao {
     private static HikariDataSource dataSource;
 
-    public LiftRideDao() {
-        dataSource = DBCPDataSource.getDataSource();
+    private final String tableName;
+
+    public TableDao(String queueName) {
+        dataSource = HCPDataSource.getDataSource();
+        this.tableName = queueName;
     }
 
     public void createLiftRide(LiftRide liftRide) {
         Connection conn = null;
         PreparedStatement preparedStatement = null;
-        String insertQueryStatement = "INSERT INTO LiftRides (skierId, resortId, seasonId, dayId, time, liftId) " +
-                "VALUES (?,?,?,?,?,?)";
+        String insertQueryStatement = "";
+        if (tableName.equals("liftride.fifo")) {
+            insertQueryStatement = "INSERT INTO LiftRides (skierId, resortId, seasonId, dayId, time, liftId) " +
+                    "VALUES (?,?,?,?,?,?)";
+        } else if (tableName.equals("resort.fifo")) {
+            insertQueryStatement = "INSERT INTO Resorts (skierId, resortId, seasonId, dayId, time, liftId) " +
+                    "VALUES (?,?,?,?,?,?)";
+        }
         try {
             conn = dataSource.getConnection();
             preparedStatement = conn.prepareStatement(insertQueryStatement);

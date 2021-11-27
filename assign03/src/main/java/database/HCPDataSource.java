@@ -2,19 +2,18 @@ package database;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.github.cdimascio.dotenv.Dotenv;
 
-import java.util.Map;
-
-public class DBCPDataSource {
+public class HCPDataSource {
     private static final HikariConfig config = new HikariConfig();
     private static HikariDataSource dataSource;
 
-    static Map<String, String> env = new ProcessBuilder().environment();
-    private static final String HOST_NAME = env.get("HOST_NAME");
-    private static final String PORT = env.get("MYSQL_PORT");
-    private static final String DATABASE = env.get("DB_NAME");
-    private static final String USERNAME = env.get("DB_USERNAME");
-    private static final String PASSWORD = env.get("DB_PASSWORD");
+    private static final Dotenv dotenv = Dotenv.configure().load();
+    private static final String HOST_NAME = dotenv.get("HOST_NAME");
+    private static final String PORT = dotenv.get("MYSQL_PORT");
+    private static final String DATABASE = dotenv.get("DB_NAME");
+    private static final String USERNAME = dotenv.get("DB_USERNAME");
+    private static final String PASSWORD = dotenv.get("DB_PASSWORD");
 
     public static synchronized HikariDataSource getDataSource() {
         if (dataSource == null) {
@@ -25,7 +24,7 @@ public class DBCPDataSource {
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            config.setMaximumPoolSize(120);
+            config.setMaximumPoolSize(640);
             dataSource = new HikariDataSource(config);
         }
         return dataSource;

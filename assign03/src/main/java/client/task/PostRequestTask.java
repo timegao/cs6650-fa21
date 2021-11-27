@@ -5,10 +5,13 @@ import client.model.Lift;
 import client.model.Request;
 import io.swagger.client.ApiClient;
 import io.swagger.client.ApiException;
+import io.swagger.client.ApiResponse;
 import io.swagger.client.api.SkiersApi;
 import io.swagger.client.model.LiftRide;
 import lombok.RequiredArgsConstructor;
+import org.apache.log4j.BasicConfigurator;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -16,7 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 @RequiredArgsConstructor
 public final class PostRequestTask implements Runnable {
-    private static final int RESORT_ID = 123, BAD_REQUEST = 400, OK_REQUEST = 200;
+    private static final int RESORT_ID = 123, MAXIMUM_RETRIES = 3, INITIAL_SLEEP_TIMER = 1, SLEEP_TIMER_MULTIPLIER = 10;
     private static final String SEASON_ID = "456", DAY_ID = "123";
 
     private final int numberLifts, numberRequests;
@@ -39,6 +42,7 @@ public final class PostRequestTask implements Runnable {
         ApiClient client = new ApiClient().setConnectTimeout(60000).setReadTimeout(60000);
         client.setBasePath(this.serverIPAddress);
         SkiersApi apiInstance = new SkiersApi(client);
+        BasicConfigurator.configure();
 
         for (int i = 0; i < this.numberRequests; i++) {
             int skierID = (int) Math.ceil(Math.random() * lift.getEndIDNumber()) - lift.getStartIDNumber();
@@ -58,17 +62,36 @@ public final class PostRequestTask implements Runnable {
         long startTime = System.currentTimeMillis();
         int responseCode;
         try {
-            apiInstance.writeNewLiftRide(liftRide, RESORT_ID, SEASON_ID, DAY_ID, skierID);
-            responseCode = OK_REQUEST;
+            ApiResponse<Void> response = apiInstance.writeNewLiftRideWithHttpInfo(liftRide, RESORT_ID, SEASON_ID, DAY_ID, skierID);
+            responseCode = response.getStatusCode();
         } catch (ApiException e) {
-            responseCode = BAD_REQUEST;
-            e.printStackTrace();
+            responseCode = exponentialBackoff(apiInstance, liftRide, skierID, e.getCode());
         }
         long endTime = System.currentTimeMillis();
-        if (responseCode == OK_REQUEST) {
-            successQueue.add(new Request(startTime, endTime, endTime - startTime, OK_REQUEST, "POST"));
+        if (responseCode == HttpServletResponse.SC_OK) {
+            successQueue.add(new Request(startTime, endTime, endTime - startTime, responseCode, "POST"));
         } else {
-            failureQueue.add(new Request(startTime, endTime, endTime - startTime, BAD_REQUEST, "POST"));
+            failureQueue.add(new Request(startTime, endTime, endTime - startTime, responseCode, "POST"));
         }
+    }
+
+    private int exponentialBackoff(SkiersApi apiInstance, LiftRide liftRide, int skierID, int apiExceptionCode) {
+        int retries = 0;
+        int sleepTimer = INITIAL_SLEEP_TIMER;
+        int responseCode = apiExceptionCode;
+        while (retries < MAXIMUM_RETRIES) {
+            try {
+                Thread.sleep(sleepTimer *= SLEEP_TIMER_MULTIPLIER);
+                ApiResponse<Void> response = apiInstance.writeNewLiftRideWithHttpInfo(liftRide, RESORT_ID, SEASON_ID, DAY_ID, skierID);
+                responseCode = response.getStatusCode();
+                break;
+            } catch (ApiException | InterruptedException e) {
+                retries++;
+                if (retries == MAXIMUM_RETRIES) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return responseCode;
     }
 }

@@ -51,9 +51,12 @@ public final class ExecutorServiceTask implements Runnable {
         executor.shutdown();
 
         try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+            if (!executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
+                executor.shutdownNow();
+            }
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
         }
 
         long endTime = System.currentTimeMillis();
