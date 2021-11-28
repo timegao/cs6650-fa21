@@ -14,7 +14,7 @@ Submit your work to Canvas Assignment 3 as a pdf document. The document should c
 
 > [Create a new folder for your Assignment 3 server code](https://github.com/timegao/cs6650-fa21/tree/main/assign03/src/main/java/server)
 
-> A short description of your [database designs and deployment topologies on AWS](#design)
+> A short description of your [database designs and deployment topologies on AWS](#aws-topology)
 
 > [Test runs](#results) ([command windows](#command), [RMQ management windows showing queue size, send/receive rates](#SQS)) 128, 256 client threads for Step 1 and 2.
 
@@ -40,32 +40,44 @@ It’s likely that the AWS restrictions on the number of instances you can start
 
 In assignment 2, your consumer created an in-memory hash map to skier and lift ride information.
 
-Your first task is to modify the consumer to persist the results to a database.
+> Your first task is to modify the consumer to persist the results to a database.
 
-You are free to choose any database you like. AWS RDS instances like MySQL, DynamoDB, MongoDB, Redis - all good candidates.
+> You are free to choose any database you like. AWS RDS instances like MySQL, DynamoDB, MongoDB, Redis - all good candidates.
 
-The data model you design in the database should enable queries like:
+> The data model you design in the database should enable queries like:
 
-“For skier N, how many days have they skied this season?”
+> “For skier N, how many days have they skied this season?”
 
-“For skier N, what are the vertical totals for each ski day?”
+> “For skier N, what are the vertical totals for each ski day?”
 
-“For skier N, show me the lifts they rode on each ski day”
+> “For skier N, show me the lifts they rode on each ski day”
 
-Whatever database you choose, the challenge is to write to the database ideally as fast as you can consume messages from RabbitMQ. This may be challenging based on the EC2 resources you choose, so experiment required. Run some experiments.
+> Whatever database you choose, the challenge is to write to the database ideally as fast as you can consume messages from RabbitMQ. This may be challenging based on the EC2 resources you choose, so experiment required. Run some experiments.
 
-[Test](#results) this configuration by reporting the same results as assignment 2 for 128, 256 clients. Feel free to empty the database between tests. It might help ;)
+I chose to go with a MySQL database on RDS because it was the easiest to setup. Since we don't know what the queries will look like,
+I chose to go with the simplest implementation with relational database and to leave the API work to the next assignment.
+
+> [Test](#results) this configuration by reporting the same results as assignment 2 for 128, 256 clients.
+
+Without mitigation, I'm unable to finish the testing. See [mitigations](#mitigations) for strategies employed.
 
 ### Step 2 - Adding a Resorts Microservice
 
-Next, add a new consumer and database for storing data pertinent to the ski resort. The consumer should ingest the same data as the Skier Microservice. The data model should be designed to answer questions like:
+> Next, add a new consumer and database for storing data pertinent to the ski resort. The consumer should ingest the same data as the Skier Microservice. The data model should be designed to answer questions like:
 
-“How many unique skiers visited resort X on day N?”
-“How many rides on lift N happened on day N?”
-“On day N, show me how many lift rides took place in each hour of the ski day”
-Again, test to see if you can write to the database as quickly as the data is published to RMQ.
+> “How many unique skiers visited resort X on day N?”
 
-[Test](#results) this configuration (without skier microservice) by reporting the same results as assignment 2 for 128, 256 clients
+> “How many rides on lift N happened on day N?”
+
+> “On day N, show me how many lift rides took place in each hour of the ski day”
+
+> Again, test to see if you can write to the database as quickly as the data is published to RMQ.
+
+For the Resorts Microservice, I've left it as work to do for the next assignment. It is designed exactly the same as the LiftRide microservice.
+
+> [Test](#results) this configuration (without skier microservice) by reporting the same results as assignment 2 for 128, 256 clients
+
+Without mitigation, I'm unable to finish the testing. See [mitigations](#mitigations) for strategies employed.
 
 ### Step 3 - Experiments
 
@@ -77,8 +89,39 @@ If you do, you have two choices:
 
 > Increase capacity - this means deploying more than free tier instances. Watch the $$s.
 
+Starting from a t2.micro database, I quickly ramped up to a t3.medium database as well as tried using a t3.xlarge database.
+From the [results](#results), t3.medium seems to afford enough connections for the throughput coming in. Also from the results,
+it seems that 2 instances of t2.micro for consumers and 2 instances of t2.micro for server/producer gets the job done.
+I chose to go with a load balancer for more stability and to share load between the server/producers,
+but one t2.micro is likely enough for single runs (see [observations](#observations) section).
+
 > Introduce throttling - you could do this e.g. in the client by introducing a throughput-based circuit breaker with exponential backoffs in client POSTs and/or RMQ posts/configuration
-You don’t have to do both. But your aim is to try and deliver more stable throughput and eliminate client errors that may occur when no mitigation measures were used.
+
+Throttle already exists because SNS only allows for 300 requests per second for FIFO SNS's. When I go beyond the 300 requests per second,
+the request would error out due to `ThrottlingException` and the request would be canceled. To handle the 'ThrottlingException',
+I added an exponentialBackoff method within my `PostRequestTask` class in my client.
+
+###<a name="aws-topology">***AWS Topology:***</a>
+
+Instead of sticking with rabbitmq, I decided to learn and experiment with SQS instead. That was admittedly a lot of work, but I did learn a lot.
+
+#### SQS Cons:
+
+- No access to IAM roles means that you have to manually set the aws credentials, which expires every three hours.
+- SQS is much more expensive than the free option with rabbitmq and charges you for every million requests.
+- Since I went with the FIFO option for SNS and SQS, my requests were throttled to 300 requests per second.
+- Bugs with purging queues, which sometimes do not work.
+- No option to run the service locally for testing.
+- Additional programming required to have working code. The code for rabbitmq is mostly provided, but the code for SQS is not and I have to go through a lot of iterations to have a somewhat working code.
+
+#### SQS Pros:
+
+- More custom tweaking. You can set your own parameters for visibility, deduplication, FIFO vs Standard, etc.
+- More transparency with monitoring and graphs.
+- Better integration with AWS Lambda, though that'll likely cost you.
+- It doesn't cost an EC2 instance, which are valuable given we only have access to 5 total (although I only used 4 and may only have needed 3).
+
+I also used RDS for the database, and stuck with 2 EC2 instances for consumers, load balancer with 2 EC2 instances for server/producer.
 
 ### <a name="classes">**Classes**</a>
 
@@ -94,24 +137,95 @@ You don’t have to do both. But your aim is to try and deliver more stable thro
 
 &nbsp;
 
+## <a name="mitigations">**Mitigations**</a>
+
+### Iterations:
+
+#### 1:
+I started off with an asynchronous `MessageListener` SQS FIFO queue, but it was problematic because it only processed one queue item at a time.
+
+#### 2:
+I added multithreading to the asynchronous `MessageListener` SQS FIFO queue, but that didn't change the number of messages in flight.
+
+#### 3:
+I scratched the design SQS FIFO queue and went with a Standard queue instead, which allowed for the number of messages in flight to go higher.
+However, the issue became that there were duplicates because Standard queue is at least once delivery, so it's possible for a queue item to be delivered more than once.
+
+#### 4:
+I switched back to the FIFO queue because it allows for exactly once delivery. I figured out that I needed to set the deduplication level to `MessageGroupId` and `DeduplicationId`.
+Creating the changes with multithreading allowed for multiple number of messages in flight. Changing the visibility timeout fixed the issue with duplicates.
+
+#### 5:
+I changed the database from DBCP to HikariCP for faster connections. The connections are set up initially, but limited by the connection pool.
+
+#### 6:
+I removed the asynchronous `MessageListener` for synchronous batch messaging instead to minimize the number of requests to SQS.
+The messages would be received in one batch, and the `DeleteMessageBatchRequest` would also be in one batch.
+
+#### 7:
+I upgraded the RDS instance from t2.micro to medium to have more connections. I tested upgrading the consumers and server/producers as well,
+but outside of running the instance multiple times, scaling up doesn't seem to help.
+
+### Strategies:
+
+#### 1:
+One strategy was to run the program with fresh instances. My [observations](#observations) is that there are thermal limitations associated with the t2.micro chips.
+
+#### 2:
+Using `nohup` to run the program led to vastly faster consumers. Logging takes up CPU bandwidth, so it's much faster to output the log to a file instead.
+
+### Bottleneck:
+
+The bottleneck for me is the 300 requests/second limitation for SNS Fifo Topics. To overcome the limitation, I would need to use a Standard SNS Topic.
+That would mean I would need to add ways to deduplicate my own queues, which is certainly possible by maintaining a cache.
+In my testing, I only achieved about 250 requests/second which is about the limit given that I sleep my thread after hitting the `ThrottlingException`.
+
+&nbsp;
+
 ## <a name="results">**Results**</a>
 
 &nbsp;
 
-### Observations
+### <a name="observations">**Observations**</a>
 
 There appears to be thermal limitations on the AWS CPU's where running the same task one after the other could vastly  affect the results.
 This is understandable because chips inevitably get hot after running full throttle for 10+ minutes at a time,
-and the cooling solution for these low power chips might not be very good.
-t2.micro chips are from 2013, which is ancient in today's terms.
+and the cooling solution for these low power chips might not be very good. t2.micro chips are from 2013, which is ancient in today's terms.
 t3.micro is much better suited for multi-threaded web servers with 2 cores instead of 1 for t2.micro and 9.31 GB/s memory bandwith instead of t2.micro's 15.5 GB/s.
 Unfortunately AWS doesn't let you create EC2 instances from AMI's. For the very result, I found it better to switch EC2 instances after every run.
 Even after waiting for as long as 30 minutes, the chips have not cooled down enough for an effective second run.
+
+#### first run:
+
+The first run handles the requests as expected, and visible messages doesn't go much beyond 70 at the peak of about 17,000 messages received per second.
+
+![first run received](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/liftrides/256%20micro%20received%20medium%202.png?token=AMABNPXPG7SEQJA3DJQKVFDBVPWT2)
+
+![first run visible](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/liftrides/256%20micro%20visible%20medium%202.png?token=AMABNPSPZJF7P2RQM3CX6H3BVPWSA)
+
+#### second run:
+
+The second run starts handling the requests as soon as the message received reaches the peak, and never quite recovers after that, hitting as high as about 110k visible messages.
+
+![second run received](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/liftrides/256%20micro%20received%20medium%201.png?token=AMABNPVGTCXJZOQCBXM4YPTBVPWTA)
+
+![second run visible](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/liftrides/256%20micro%20visible%20medium%201.png?token=AMABNPS2TOO3WOBJV7DRPPDBVPWQU)
+
+
+#### notes:
+
+Because the server drastically slows down by the second run, I'm unable to collect the data.
+However, my testing is that running the server again on the same t2.micro instances would lead to drastically slower results,
+where the server can dip to as low as 10 requests per second and thus it may take hours to finish. I simply don't have the time to just let it run.
 
 &nbsp;
 
 ## <a name="uml">**UML**</a>
 
-### producer
+### server/producer
+
+![server_producer uml](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/uml/server_producer.png?token=AMABNPVYMKBQMR56NZHSCFDBVPWJU)
 
 ### consumer
+
+![consumer uml](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/uml/consumer.png?token=AMABNPXBJ36X2WLSTRZHBM3BVPV7G)
