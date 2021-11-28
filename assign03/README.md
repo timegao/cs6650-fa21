@@ -16,11 +16,11 @@ Submit your work to Canvas Assignment 3 as a pdf document. The document should c
 
 > A short description of your [database designs and deployment topologies on AWS](#aws-topology)
 
-> [Test runs](#results) ([command windows](#command), [RMQ management windows showing queue size, send/receive rates](#SQS)) 128, 256 client threads for Step 1 and 2.
+> [Test runs](#results) ([command windows](#command), [RMQ management windows showing queue size, send/receive rates](#sqs)) 128, 256 client threads for Step 1 and 2.
 
-> [Test run for 128, 256 clients](#results) ([command windows](#command), [RMQ management windows showing queue size, send/receive rates](#SQS)) with both microservices consuming and writing to the database.
+> [Test run for 128, 256 clients](#results) ([command windows](#command), [RMQ management windows showing queue size, send/receive rates](#sqs)) with both microservices consuming and writing to the database.
 
-> A brief explanation of your [mitigation strategy](#mitigation) and [results](#results) with 128 256 clients to show their effects.
+> A brief explanation of your [mitigation strategy](#mitigations) and [results](#results) with 128 256 clients to show their effects.
 
 &nbsp;
 
@@ -59,7 +59,7 @@ I chose to go with the simplest implementation with relational database and to l
 
 > [Test](#results) this configuration by reporting the same results as assignment 2 for 128, 256 clients.
 
-Without mitigation, see [result](#result) without nohup. See [mitigations](#mitigations) for strategies employed.
+Without mitigation, see [results](#results) without nohup. See [mitigations](#mitigations) for strategies employed.
 
 ### Step 2 - Adding a Resorts Microservice
 
@@ -77,7 +77,7 @@ For the Resorts Microservice, I've left it as work to do for the next assignment
 
 > [Test](#results) this configuration (without skier microservice) by reporting the same results as assignment 2 for 128, 256 clients
 
-Without mitigation, see [result](#result) without nohup. See [mitigations](#mitigations) for strategies employed.
+Without mitigation, see [results](#results) without nohup. See [mitigations](#mitigations) for strategies employed.
 
 ### Step 3 - Experiments
 
@@ -92,14 +92,13 @@ Without mitigation, see [result](#result) without nohup. See [mitigations](#miti
 Starting from a t2.micro database, I quickly ramped up to a t3.medium database as well as tried using a t3.xlarge database.
 From the [results](#results), t3.medium seems to afford enough connections for the throughput coming in. Also from the results,
 it seems that 2 instances of t2.micro for consumers and 2 instances of t2.micro for server/producer gets the job done.
-I chose to go with a load balancer for more stability and to share load between the server/producers,
-but one t2.micro is likely enough for single runs (see [observations](#observations) section).
+I chose to go with a load balancer for more stability and to share load between the server/producers, but one t2.micro is likely enough for single runs.
 
 > Introduce throttling - you could do this e.g. in the client by introducing a throughput-based circuit breaker with exponential backoffs in client POSTs and/or RMQ posts/configuration
 
-Throttle already exists because SNS only allows for 300 requests per second for FIFO SNS's. When I go beyond the 300 requests per second,
-the request would error out due to `ThrottlingException` and the request would be canceled. To handle the 'ThrottlingException',
-I added an exponentialBackoff method within my `PostRequestTask` class in my client.
+Throttle already exists because [SNS only allows for 300 requests per second for FIFO SNS's](https://aws.amazon.com/sns/features/).
+When I go beyond the 300 requests per second, the request would error out due to `ThrottlingException` and the request would be canceled.
+To handle the 'ThrottlingException', I added an exponentialBackoff method within my `PostRequestTask` class in my client.
 
 ### <a name="aws-topology">**AWS Topology**</a>
 
@@ -177,13 +176,15 @@ I used Apache Options from the [Commons CLI library](https://commons.apache.org/
 
 ```
 usage: options
+
  -q,--queueName <arg>   name of the queue
+
  -t,--threads <arg>     number of threads
 ```
 
 &nbsp;
 
-## <a name="mitigations">**Mitigations**</a>
+## <a name="mitigations">**Mitigation Stragies**</a>
 
 ### Iterations:
 
@@ -199,7 +200,8 @@ usage: options
 
 5. I changed the database from DBCP to HikariCP for faster connections. The connections are set up initially, but limited by the connection pool.
 
-6. I removed the asynchronous `MessageListener` for synchronous batch messaging instead to minimize the number of requests to SQS.The messages would be received in one batch, and the `DeleteMessageBatchRequest` would also be in one batch.
+6. I removed the asynchronous `MessageListener` for synchronous batch messaging instead to minimize the number of requests to SQS.
+   The messages would be received in one batch, and the `DeleteMessageBatchRequest` would also be in one batch.
 
 7. I upgraded the RDS instance from t2.micro to medium to have more connections. I tested upgrading the consumers and server/producers as well,
    but outside of running the instance multiple times, scaling up doesn't seem to help.
@@ -220,7 +222,7 @@ In my testing, I only achieved about 250 requests/second which is about the limi
 
 ## <a name="results">**Results**</a>
 
-### Throughputs
+### <a name="commands">**Throughputs**</a>
 
 Throughputs were consistenly around 200 requests per second, going as high as 250 and dropping below 200. The bottleneck was the 300 requests/second limit for SNS FIFO Topics.
 
@@ -248,17 +250,19 @@ Throughputs were consistenly around 200 requests per second, going as high as 25
 
 ![256 small consumers, load balancer, medium database](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/throughput/256%20small%20lb%20medium.png?token=AMABNPWYFWOSVNFECSCAJU3BVP7AO)
 
-The biggest game changer for me was running the consumer and without `nohup`. The other was grabbing fresh EC2 instances as opposed to running on the same instances.
+The biggest game changer for me was running the consumer and without `nohup`. The other was grabbing fresh EC2 instances as opposed to running on the same instances, see [observations](#observations) for analysis.
 
-#### 128 micro consumers, load balancer, xlarge database
+#### 128 micro consumers, load balancer. medium database
 
 The only instance of 128 threads. Despite running at 128 threads instead of 256 threads, the throughput is the same because the bottleneck is SNS FIFO Topics.
 
 ![128 micro consumers, load balancer, xlarge database](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/throughput/128%20micro%20lb%20xlarge.png?token=AMABNPQFHUNL3M7UNZBNBN3BVP7J2)
 
+### <a name="sqs">**SQS Windows**</a>
+
 ### Resort Queue xlarge database without nohup:
 
-Without `nohup`, the queues are filled over time to as high as over 100k items.
+Without `nohup`, the queues are filled over time to as high as over 100k items. Having a consumer bigger than t2.micro did not help past the first instance, and having a database bigger than t3.medium also did not help.
 
 #### 256 small consumer received:
 
@@ -286,7 +290,7 @@ Without `nohup`, the queues are filled over time to as high as over 100k items.
 
 ### Resort Queue medium database with nohup:
 
-Even with a smaller database, by having running the program with `nohup` and refreshing the EC2 instances,
+Even with a smaller database, by having running the program with `nohup` and refreshing the EC2 instances, the queues were able to keep up.
 
 #### 256 micro received 1:
 
@@ -300,11 +304,11 @@ Without refreshing the consumer instances, the queues start backing up.
 
 #### 256 micro received 2:
 
-By refreshing the consumer instances, the queues are no longer backed up.
-
 ![256 micro received 2](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/resorts/256%20micro%20received%20medium%202.png?token=AMABNPRUTWP6EBNM6OMU24LBVQAX6)
 
 #### 256 micro visible 2:
+
+By refreshing the consumer instances and running the program with `nohup`, the queues are no longer backed up.
 
 ![256 micro visible 2](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/resorts/256%20micro%20visible%20medium%202.png?token=AMABNPXTSQM2ZTOPFDX3KM3BVQAYQ)
 
@@ -312,7 +316,10 @@ By refreshing the consumer instances, the queues are no longer backed up.
 
 ![128 micro consumer received](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/resorts/128%20micro%20received.png?token=AMABNPTZJONUDM4I4AD7QR3BVQIEW)
 
-#### 128 micro consumer xlarge database visible:
+#### 128 micro consumer visible:
+
+Depending on the way the processes are run, since HikariCP can only allow so many connections, one consumer may have more connections than the other.
+This may lead to unevenness in the queues where one queue performs better than the other because it has more connections.
 
 ![128 micro consumer visible](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/resorts/128%20micro%20visible.png?token=AMABNPSZJA4CYDFGVAH2IC3BVQIF4)
 
@@ -346,7 +353,7 @@ Without `nohup`, the queues are filled over time to as high as over 100k items.
 
 ### LiftRide Queue medium database with nohup:
 
-Even with a smaller database, by having running the program with `nohup` and refreshing the EC2 instances,
+Even with a smaller database, by having running the program with `nohup` and refreshing the EC2 instances, the instances are no longer backed up.
 
 #### 256 micro received 1:
 
@@ -360,11 +367,11 @@ Without refreshing the consumer instances, the queues start backing up.
 
 #### 256 micro received 2:
 
-By refreshing the consumer instances, the queues are no longer backed up.
-
 ![256 micro received 2](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/liftrides/256%20micro%20received%20medium%202.png?token=AMABNPUQHKYGCZIQKOEGCJDBVQBS4)
 
 #### 256 micro visible 2:
+
+By refreshing the consumer instances, the queues are no longer backed up.
 
 ![256 micro visible 2](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/liftrides/256%20micro%20visible%20medium%202.png?token=AMABNPUZP2P65V2QE2I3JE3BVQBT6)
 
