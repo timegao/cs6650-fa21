@@ -154,7 +154,7 @@ lombok - used to simplify classes with annotations.
 
 swagger-java-client - used for Swagger Client SDK.
 
-### <a name="commands">**Commands**</a>
+### <a name="command">**Commands**</a>
 
 I used Apache Options from the [Commons CLI library](https://commons.apache.org/proper/commons-cli/) to write the client according to the specifications.
 
@@ -228,6 +228,8 @@ Throughputs were consistenly around 200 requests per second, going as high as 25
 
 #### 256 medium consumers, load balancer, medium database
 
+When the same tasks are run over the same EC2 instances, the exceptions would start to appearing even with exponential backoff.
+
 ![256 medium consumers, load balancer, medium database](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/throughput/256%20medium%20lb%20medium.png?token=AMABNPSCKUECFEP34KPTDR3BVP7HM)
 
 #### 256 medium consumers, load balancer, xlarge database
@@ -249,8 +251,6 @@ Throughputs were consistenly around 200 requests per second, going as high as 25
 #### 256 small consumers, load balancer, medium database
 
 ![256 small consumers, load balancer, medium database](https://raw.githubusercontent.com/timegao/cs6650-fa21/main/assign03/images/throughput/256%20small%20lb%20medium.png?token=AMABNPWYFWOSVNFECSCAJU3BVP7AO)
-
-The biggest game changer for me was running the consumer and without `nohup`. The other was grabbing fresh EC2 instances as opposed to running on the same instances, see [observations](#observations) for analysis.
 
 #### 128 micro consumers, load balancer. medium database
 
